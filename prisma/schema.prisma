@@ -1,0 +1,110 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RiderStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+}
+
+enum DeliveryJobStatus {
+  OPEN
+  ACCEPTED
+  PICKED_UP
+  DELIVERED
+  CANCELLED
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+model Rider {
+  id                 String    @id @default(cuid())
+  fullName           String
+  email              String    @unique
+  phone              String?
+  taxCode            String?
+  iban               String?
+  profileImageUrl    String?
+  
+  status             RiderStatus @default(PENDING)
+  availableNow       Boolean     @default(false)
+
+  yearlyEarnings     Float       @default(0)
+  monthlyEarnings    Float       @default(0)
+
+  contractSignedAt   DateTime?
+  identityVerifiedAt DateTime?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  documents          RiderDocument[]
+  payouts            RiderPayout[]
+  zones              RiderZone[]
+
+  @@index([status])
+  @@index([availableNow])
+  @@index([yearlyEarnings])
+  @@index([status, availableNow])
+}
+
+model DeliveryJob {
+  id                String    @id @default(cuid())
+  shop              String
+  restaurantId      String
+  orderGid          String
+  shopifyOrderName  String?
+  status            DeliveryJobStatus @default(OPEN)
+  fee               Float     @default(2.50)
+  fulfillmentMethod String
+  deliveryAddress   String?
+  requestedAt       DateTime  @default(now())
+  acceptedAt        DateTime?
+  riderId           String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([shop, restaurantId, orderGid])
+}
+
+model RiderDocument {
+  id        String   @id @default(cuid())
+  type      String   // e.g. "ID_CARD", "CONTRACT", "RECEIPT"
+  fileUrl   String
+  
+  riderId   String
+  rider     Rider    @relation(fields: [riderId], references: [id], onDelete: Cascade)
+  
+  createdAt DateTime @default(now())
+}
+
+model RiderPayout {
+  id          String   @id @default(cuid())
+  month       Int
+  year        Int
+  grossAmount Float
+  status      PayoutStatus   @default(PENDING)
+  paidAt      DateTime?
+  receiptUrl  String?
+
+  riderId     String
+  rider       Rider    @relation(fields: [riderId], references: [id], onDelete: Cascade)
+}
+
+model RiderZone {
+  id        String   @id @default(cuid())
+  zoneName  String
+  active    Boolean  @default(true)
+
+  riderId   String
+  rider     Rider    @relation(fields: [riderId], references: [id], onDelete: Cascade)
+}

@@ -42,7 +42,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <div className="flex flex-col min-h-screen bg-gray-50">
+      <header className="bg-white sticky top-0 z-50 shadow-sm border-b border-gray-100 flex items-center justify-center py-3">
+        <img src="/LOGO%20MAREMMA%20TO%20GO.png" alt="Maremma To Go Logo" className="h-8 md:h-10 w-auto object-contain" />
+      </header>
+      <div className="flex-1 w-full flex flex-col">
+        <Outlet />
+      </div>
+    </div>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

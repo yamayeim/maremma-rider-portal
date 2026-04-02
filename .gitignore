@@ -1,7 +1,10 @@
+node_modules
 .DS_Store
 .env
-/node_modules/
-
-# React Router
-/.react-router/
-/build/
+.env.*
+.react-router
+dist
+build
+dev.db
+prisma/dev.db
+public/uploads
