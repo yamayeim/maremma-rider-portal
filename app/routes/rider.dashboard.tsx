@@ -1,4 +1,5 @@
-import { requireActiveRider, checkEarningsThreshold } from "~/utils.server";
+import { requireActiveRider } from "~/utils.server";
+import { checkEarningsThreshold } from "~/utils";
 import type { Route } from "./+types/rider.dashboard";
 import { prisma } from "~/db.server";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -127,7 +128,7 @@ export default function RiderDashboard({ loaderData }: Route.ComponentProps) {
                             <CardContent className="p-4 bg-brand-50/50">
                                 <div className="flex items-center gap-2 mb-1">
                                     <Store className="w-4 h-4 text-gray-400" />
-                                    <span className="text-sm text-gray-600 truncate">{activeJob.restaurantName || "Partner"}</span>
+                                    <span className="text-sm text-gray-600 truncate">{activeJob.restaurantId}</span>
                                 </div>
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-2">
