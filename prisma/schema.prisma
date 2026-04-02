@@ -31,6 +31,7 @@ model Rider {
   id                 String    @id @default(cuid())
   fullName           String
   email              String    @unique
+  password           String
   phone              String?
   taxCode            String?
   iban               String?
@@ -50,6 +51,7 @@ model Rider {
   documents          RiderDocument[]
   payouts            RiderPayout[]
   zones              RiderZone[]
+  jobs               DeliveryJob[]
 
   @@index([status])
   @@index([availableNow])
@@ -69,9 +71,13 @@ model DeliveryJob {
   deliveryAddress   String?
   requestedAt       DateTime  @default(now())
   acceptedAt        DateTime?
+  pickedUpAt        DateTime?
+  deliveredAt       DateTime?
   riderId           String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+
+  rider             Rider?    @relation(fields: [riderId], references: [id])
 
   @@unique([shop, restaurantId, orderGid])
 }

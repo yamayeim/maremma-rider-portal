@@ -4,6 +4,7 @@ import { prisma } from "~/db.server";
 import { Button } from "~/components/ui/Button";
 import { Card, CardContent } from "~/components/ui/Card";
 import { ArrowLeft } from "lucide-react";
+import { hashPassword } from "~/auth.server";
 
 export async function action({ request }: Route.ActionArgs) {
     const formData = await request.formData();
@@ -13,9 +14,10 @@ export async function action({ request }: Route.ActionArgs) {
     const taxCode = formData.get("taxCode");
     const iban = formData.get("iban");
     const status = formData.get("status") || "ACTIVE";
+    const password = formData.get("password");
 
-    if (typeof email !== "string" || !email || typeof fullName !== "string" || !fullName) {
-        return { error: "Nome ed Email sono obbligatori." };
+    if (typeof email !== "string" || !email || typeof fullName !== "string" || !fullName || typeof password !== "string" || !password) {
+        return { error: "Nome, Email e Password sono obbligatori." };
     }
 
     // Check for existing rider
@@ -27,10 +29,13 @@ export async function action({ request }: Route.ActionArgs) {
         return { error: "Un rider con questa email esiste già." };
     }
 
+    const hashedPassword = await hashPassword(password);
+
     await prisma.rider.create({
         data: {
             email,
             fullName,
+            password: hashedPassword,
             phone: typeof phone === "string" ? phone : null,
             taxCode: typeof taxCode === "string" ? taxCode : null,
             iban: typeof iban === "string" ? iban : null,
@@ -104,6 +109,21 @@ export default function NewRider({ actionData }: Route.ComponentProps) {
                                     className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
                                     placeholder="+39 333 1234567"
                                 />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+                                    Password *
+                                </label>
+                                <input
+                                    id="password"
+                                    name="password"
+                                    type="password"
+                                    required
+                                    className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                                    placeholder="••••••••"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Imposta una password sicura per il rider.</p>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

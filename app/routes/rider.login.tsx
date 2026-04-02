@@ -4,27 +4,32 @@ import { getSession, commitSession } from "~/sessions.server";
 import { prisma } from "~/db.server";
 import { Button } from "~/components/ui/Button";
 
+import { verifyPassword } from "~/auth.server";
+
 export async function action({ request }: Route.ActionArgs) {
     const formData = await request.formData();
     const email = formData.get("email");
+    const password = formData.get("password");
 
-    if (typeof email !== "string" || !email) {
-        return { error: "L'email è obbligatoria." };
+    if (typeof email !== "string" || !email || typeof password !== "string" || !password) {
+        return { error: "Email e password sono obbligatorie." };
     }
 
-    // Find rider or create for MVP purposes to make testing easy
-    let rider = await prisma.rider.findUnique({
+    const rider = await prisma.rider.findUnique({
         where: { email },
     });
 
     if (!rider) {
-        rider = await prisma.rider.create({
-            data: {
-                email,
-                fullName: email.split("@")[0] || "Nuovo Rider",
-                status: "ACTIVE",
-            },
-        });
+        return { error: "Credenziali non valide." };
+    }
+
+    const isPasswordValid = await verifyPassword(password, rider.password);
+    if (!isPasswordValid) {
+        return { error: "Credenziali non valide." };
+    }
+
+    if (rider.status !== "ACTIVE") {
+        return { error: "Il tuo account non è attivo. Contatta l'amministrazione." };
     }
 
     const session = await getSession(request.headers.get("Cookie"));
@@ -48,30 +53,45 @@ export default function RiderLogin({ actionData }: Route.ComponentProps) {
 
                 <form method="post" className="space-y-6">
                     <div className="space-y-2">
-                        <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
-                            Email personale
-                        </label>
+                        <div className="flex items-center justify-between">
+                            <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+                                Email
+                            </label>
+                        </div>
                         <input
                             id="email"
                             name="email"
                             type="email"
                             required
                             placeholder="mario.rossi@email.com"
-                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all text-sm"
+                        />
+                    </div>
+
+                    <div className="space-y-2">
+                        <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+                            Password
+                        </label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            required
+                            placeholder="••••••••"
+                            className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all text-sm"
                         />
                         {actionData?.error && (
-                            <p className="text-red-500 text-sm mt-1">{actionData.error}</p>
+                            <p className="text-red-500 text-xs mt-1 font-medium">{actionData.error}</p>
                         )}
                     </div>
 
                     <Button type="submit" size="lg" fullWidth>
-                        Accedi come Rider
+                        Accedi alla Dashboard
                     </Button>
                 </form>
 
-                <p className="text-center text-sm text-gray-500 mt-6">
-                    Inserisci la tua email per accedere. <br />
-                    <span className="text-brand-600 font-medium">Il codice magico ti verra' inviato per email (Demo: Auto-login).</span>
+                <p className="text-center text-xs text-gray-400 mt-6 px-4">
+                    Credenziali fornite dall'amministrazione Maremma To Go.
                 </p>
             </div>
         </div>
