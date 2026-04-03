@@ -86,15 +86,15 @@ export default function RiderJobs({ loaderData, actionData }: Route.ComponentPro
                                         <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                                             <div className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-brand-500 bg-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10" />
                                             <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] ml-3 md:ml-0">
-                                                <p className="font-semibold text-gray-900 text-sm">{job.restaurantId}</p>
-                                                <p className="text-xs text-gray-500 line-clamp-1">Ritiro in sede</p>
+                                                <p className="font-semibold text-gray-900 text-sm">{job.restaurantName || "Ristorante"}</p>
+                                                <p className="text-xs text-gray-500 line-clamp-1">{job.pickupAddress || "Ritiro in sede"}</p>
                                             </div>
                                         </div>
                                         {/* Delivery */}
                                         <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
                                             <div className="flex items-center justify-center w-5 h-5 rounded-full border-2 border-gray-300 bg-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2 z-10" />
                                             <div className="w-[calc(100%-2rem)] md:w-[calc(50%-1.5rem)] ml-3 md:ml-0">
-                                                <p className="font-semibold text-gray-900 text-sm">Cliente</p>
+                                                <p className="font-semibold text-gray-900 text-sm">{job.customerName || "Cliente"}</p>
                                                 <p className="text-xs text-gray-500 line-clamp-1">{job.deliveryAddress || "Indirizzo Sconosciuto"}</p>
                                             </div>
                                         </div>

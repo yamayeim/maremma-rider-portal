@@ -69,6 +69,11 @@ model DeliveryJob {
   fee               Float     @default(2.50)
   fulfillmentMethod String
   deliveryAddress   String?
+  restaurantName    String?
+  pickupAddress     String?
+  restaurantPhone   String?
+  customerName      String?
+  customerPhone     String?
   requestedAt       DateTime  @default(now())
   acceptedAt        DateTime?
   pickedUpAt        DateTime?

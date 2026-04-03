@@ -82,7 +82,7 @@ export default function RiderJobDetail({ loaderData }: Route.ComponentProps) {
             </div>
 
             <div className="px-5 -mt-4 relative z-10 space-y-4">
-                {/* Restaurant Card */}
+                {/* Restaurant Card (RITIRO) */}
                 <Card className={`border-2 transition-colors ${job.status === "ACCEPTED" ? "border-brand-500 shadow-brand-500/20" : "border-gray-200 opacity-60"}`}>
                     <CardContent className="p-4">
                         <div className="flex gap-4">
@@ -91,8 +91,23 @@ export default function RiderJobDetail({ loaderData }: Route.ComponentProps) {
                             </div>
                             <div className="flex-1">
                                 <p className="text-xs text-brand-600 font-bold mb-1 uppercase tracking-wider">Ritiro</p>
-                                <h3 className="font-bold text-gray-900 text-lg leading-tight">{job.restaurantId}</h3>
-                                <p className="text-sm text-gray-500 mt-1">Vai al Ristorante (Ritiro in Sede)</p>
+                                <h3 className="font-bold text-gray-900 text-lg leading-tight">{job.restaurantName || "Ristorante"}</h3>
+                                <p className="text-sm text-gray-500 mt-1">{job.pickupAddress || "Ritiro in sede"}</p>
+
+                                {job.status === "ACCEPTED" && (
+                                    <div className="mt-4 flex gap-2">
+                                        {job.pickupAddress && (
+                                            <a href={getMapLink(job.pickupAddress)} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-900 py-2 rounded-xl text-sm font-semibold transition-colors">
+                                                <Map className="w-4 h-4" /> Mappe
+                                            </a>
+                                        )}
+                                        {job.restaurantPhone && (
+                                            <a href={`tel:${job.restaurantPhone}`} className="flex-1 flex items-center justify-center gap-2 bg-brand-50 hover:bg-brand-100 text-brand-700 py-2 rounded-xl text-sm font-semibold transition-colors">
+                                                Chiama
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
                             </div>
                         </div>
 
@@ -112,7 +127,7 @@ export default function RiderJobDetail({ loaderData }: Route.ComponentProps) {
                     </CardContent>
                 </Card>
 
-                {/* Customer Card */}
+                {/* Customer Card (CONSEGNA) */}
                 <Card className={`border-2 transition-colors ${job.status === "PICKED_UP" ? "border-brand-500 shadow-brand-500/20" : "border-gray-200 opacity-60"}`}>
                     <CardContent className="p-4">
                         <div className="flex gap-4">
@@ -121,14 +136,21 @@ export default function RiderJobDetail({ loaderData }: Route.ComponentProps) {
                             </div>
                             <div className="flex-1">
                                 <p className="text-xs text-brand-600 font-bold mb-1 uppercase tracking-wider">Consegna</p>
-                                <h3 className="font-bold text-gray-900 text-lg leading-tight">Cliente</h3>
+                                <h3 className="font-bold text-gray-900 text-lg leading-tight">{job.customerName || "Cliente"}</h3>
                                 <p className="text-sm text-gray-500 mt-1">{job.deliveryAddress || "Indirizzo Sconosciuto"}</p>
 
-                                {job.status === "PICKED_UP" && job.deliveryAddress && (
+                                {job.status === "PICKED_UP" && (
                                     <div className="mt-4 flex gap-2">
-                                        <a href={getMapLink(job.deliveryAddress)} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-900 py-2 rounded-xl text-sm font-semibold transition-colors">
-                                            <Map className="w-4 h-4" /> Mappe
-                                        </a>
+                                        {job.deliveryAddress && (
+                                            <a href={getMapLink(job.deliveryAddress)} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-900 py-2 rounded-xl text-sm font-semibold transition-colors">
+                                                <Map className="w-4 h-4" /> Mappe
+                                            </a>
+                                        )}
+                                        {job.customerPhone && (
+                                            <a href={`tel:${job.customerPhone}`} className="flex-1 flex items-center justify-center gap-2 bg-brand-50 hover:bg-brand-100 text-brand-700 py-2 rounded-xl text-sm font-semibold transition-colors">
+                                                Chiama
+                                            </a>
+                                        )}
                                     </div>
                                 )}
                             </div>
