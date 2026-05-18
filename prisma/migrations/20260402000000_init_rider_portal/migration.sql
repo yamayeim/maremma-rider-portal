@@ -1,12 +1,14 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateEnum
 CREATE TYPE "RiderStatus" AS ENUM ('PENDING', 'ACTIVE', 'SUSPENDED');
 
 -- CreateEnum
-CREATE TYPE "PayoutStatus" AS ENUM ('PENDING', 'PAID', 'FAILED');
+CREATE TYPE "DeliveryJobStatus" AS ENUM ('OPEN', 'ACCEPTED', 'PICKED_UP', 'DELIVERED', 'CANCELLED');
 
--- AlterTable
-ALTER TABLE "DeliveryJob" ADD COLUMN "pickedUpAt" TIMESTAMP(3),
-ADD COLUMN "deliveredAt" TIMESTAMP(3);
+-- CreateEnum
+CREATE TYPE "PayoutStatus" AS ENUM ('PENDING', 'PAID', 'FAILED');
 
 -- CreateTable
 CREATE TABLE "Rider" (
@@ -28,6 +30,33 @@ CREATE TABLE "Rider" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Rider_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "DeliveryJob" (
+    "id" TEXT NOT NULL,
+    "shop" TEXT NOT NULL,
+    "restaurantId" TEXT NOT NULL,
+    "orderGid" TEXT NOT NULL,
+    "shopifyOrderName" TEXT,
+    "status" "DeliveryJobStatus" NOT NULL DEFAULT 'OPEN',
+    "fee" DOUBLE PRECISION NOT NULL DEFAULT 2.50,
+    "fulfillmentMethod" TEXT NOT NULL,
+    "deliveryAddress" TEXT,
+    "restaurantName" TEXT,
+    "pickupAddress" TEXT,
+    "restaurantPhone" TEXT,
+    "customerName" TEXT,
+    "customerPhone" TEXT,
+    "requestedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "acceptedAt" TIMESTAMP(3),
+    "pickedUpAt" TIMESTAMP(3),
+    "deliveredAt" TIMESTAMP(3),
+    "riderId" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "DeliveryJob_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -80,6 +109,27 @@ CREATE INDEX "Rider_yearlyEarnings_idx" ON "Rider"("yearlyEarnings");
 -- CreateIndex
 CREATE INDEX "Rider_status_availableNow_idx" ON "Rider"("status", "availableNow");
 
+-- CreateIndex
+CREATE INDEX "DeliveryJob_status_idx" ON "DeliveryJob"("status");
+
+-- CreateIndex
+CREATE INDEX "DeliveryJob_shop_status_idx" ON "DeliveryJob"("shop", "status");
+
+-- CreateIndex
+CREATE INDEX "DeliveryJob_restaurantId_status_idx" ON "DeliveryJob"("restaurantId", "status");
+
+-- CreateIndex
+CREATE INDEX "DeliveryJob_riderId_status_idx" ON "DeliveryJob"("riderId", "status");
+
+-- CreateIndex
+CREATE INDEX "DeliveryJob_requestedAt_idx" ON "DeliveryJob"("requestedAt");
+
+-- CreateIndex
+CREATE INDEX "DeliveryJob_orderGid_idx" ON "DeliveryJob"("orderGid");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "DeliveryJob_shop_restaurantId_orderGid_key" ON "DeliveryJob"("shop", "restaurantId", "orderGid");
+
 -- AddForeignKey
 ALTER TABLE "DeliveryJob" ADD CONSTRAINT "DeliveryJob_riderId_fkey" FOREIGN KEY ("riderId") REFERENCES "Rider"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -91,3 +141,4 @@ ALTER TABLE "RiderPayout" ADD CONSTRAINT "RiderPayout_riderId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "RiderZone" ADD CONSTRAINT "RiderZone_riderId_fkey" FOREIGN KEY ("riderId") REFERENCES "Rider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
