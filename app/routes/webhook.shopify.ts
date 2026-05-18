@@ -1,12 +1,6 @@
 import type { Route } from "./+types/webhook.shopify";
 import { prisma } from "~/db.server";
-import {
-    verifyShopifyWebhookHmac,
-    isDeliveryOrder,
-    resolveRestaurantFromOrder,
-    formatCustomerDeliveryData,
-    DELIVERY_FEE_EUR
-} from "~/utils/shopify.server";
+
 
 export async function action({ request }: Route.ActionArgs) {
     // Top level method rejection (not wrapped in try/catch to fail fast and explicitly)
@@ -16,7 +10,9 @@ export async function action({ request }: Route.ActionArgs) {
 
     try {
         // 1. Raw Byte Verification First
-        // HMAC MUST be calculated against exact raw payload bytes before JSON.parse
+        const shopifyServer = await import("~/utils/shopify.server");
+        const { verifyShopifyWebhookHmac, isDeliveryOrder, resolveRestaurantFromOrder, formatCustomerDeliveryData } = shopifyServer;
+        
         const rawBody = await request.text();
         const isValid = await verifyShopifyWebhookHmac(request, rawBody);
 
