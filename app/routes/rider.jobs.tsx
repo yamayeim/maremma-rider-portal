@@ -16,7 +16,15 @@ export async function loader({ request }: Route.LoaderArgs) {
     // Only fetch OPEN jobs using new index/enum
     const openJobs = await prisma.deliveryJob.findMany({
         where: { status: "OPEN" },
-        orderBy: { createdAt: "desc" }
+        orderBy: { createdAt: "desc" },
+        select: {
+            id: true,
+            fee: true,
+            restaurantName: true,
+            pickupAddress: true,
+            customerName: true,
+            deliveryAddress: true,
+        }
     });
 
     return { openJobs };

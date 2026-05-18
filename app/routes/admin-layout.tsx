@@ -1,5 +1,45 @@
-import { Outlet, NavLink } from "react-router";
+import { Outlet, NavLink, redirect } from "react-router";
 import { Users, Package } from "lucide-react";
+import { getSession } from "~/sessions.server";
+import type { Route } from "./+types/admin-layout";
+
+export async function loader({ request }: Route.LoaderArgs) {
+    // 1. Block rider sessions immediately
+    const session = await getSession(request.headers.get("Cookie"));
+    if (session.get("riderId")) {
+        throw new Response("Forbidden: Riders cannot access admin area", { status: 403 });
+    }
+
+    // 2. Fatal misconfiguration check
+    const adminPass = process.env.ADMIN_PASSWORD?.trim();
+    if (!adminPass) {
+        throw new Response("Service Unavailable: Admin access is misconfigured.", { status: 503 });
+    }
+
+    // 3. Strict Basic Auth validation
+    const authHeader = request.headers.get("Authorization");
+    let isAuthorized = false;
+
+    if (authHeader && authHeader.startsWith("Basic ")) {
+        try {
+            const expectedAuth = `Basic ${Buffer.from(`admin:${adminPass}`).toString("base64")}`;
+            if (authHeader === expectedAuth) {
+                isAuthorized = true;
+            }
+        } catch (e) {
+            isAuthorized = false;
+        }
+    }
+
+    if (!isAuthorized) {
+        throw new Response("Unauthorized", {
+            status: 401,
+            headers: { "WWW-Authenticate": 'Basic realm="Admin Area"' }
+        });
+    }
+
+    return null;
+}
 
 export default function AdminLayout() {
     return (

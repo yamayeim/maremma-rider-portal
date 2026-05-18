@@ -53,32 +53,23 @@ export async function action({ request }: Route.ActionArgs) {
         }
 
         const restaurantData = resolveRestaurantFromOrder(payload);
+        const isCancelled = !!payload.cancelled_at;
 
-        // 3. Create DeliveryJob relying on Database Unique Constraint
-        try {
-            await prisma.deliveryJob.create({
-                data: {
-                    shop: request.headers.get("x-shopify-shop-domain") || "maremma-to-go.myshopify.com",
-                    restaurantId: restaurantData.restaurantName,
+        // 3. Handle Cancellations, Ignore Creations
+        if (isCancelled) {
+            await prisma.deliveryJob.updateMany({
+                where: {
                     orderGid: payload.admin_graphql_api_id || `gid://shopify/Order/${shopifyOrderId}`,
-                    shopifyOrderName: payload.name || `Web-${shopifyOrderId.slice(-4)}`,
-                    status: "OPEN",
-                    fee: DELIVERY_FEE_EUR,
-                    fulfillmentMethod: "LOCAL_DELIVERY",
-                    deliveryAddress: customerData.deliveryAddress,
-                }
+                    status: "OPEN" // Only cancel if it hasn't been picked up yet
+                },
+                data: { status: "CANCELLED" }
             });
-        } catch (dbError: any) {
-            // Prisma P2002: Unique constraint failed
-            if (dbError.code === "P2002") {
-                console.log(`[Shopify Webhook] Order ${shopifyOrderId} already exists (DB Constraint). Securely ignoring duplicate.`);
-                return new Response("Order already synced", { status: 200 });
-            }
-            throw dbError; // Rethrow other actual DB failures to root exception handler
+            console.log(`[Shopify Webhook] SUCCESS: Cancelled OPEN DeliveryJob for order ${shopifyOrderId}.`);
+            return new Response("Delivery Job Cancelled", { status: 200 });
         }
-
-        console.log(`[Shopify Webhook] SUCCESS: Created DeliveryJob for order ${shopifyOrderId}.`);
-        return new Response("Delivery Job Created Successfully", { status: 201 });
+        
+        console.log(`[Shopify Webhook] Ignored creation for order ${shopifyOrderId} - Must be created via Restaurant Portal.`);
+        return new Response("Creation Ignored", { status: 200 });
 
     } catch (e) {
         // Global hook error boundary securely swallowing trace data
