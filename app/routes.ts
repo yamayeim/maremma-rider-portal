@@ -21,5 +21,6 @@ export default [
         route("admin/riders/:id", "routes/admin.rider-detail.tsx"),
         route("admin/delivery-jobs", "routes/admin.delivery-jobs.tsx"),
     ]),
-    route("api/webhooks/shopify", "routes/webhook.shopify.ts")
+    route("api/webhooks/shopify", "routes/webhook.shopify.ts"),
+    route("api/delivery-jobs", "routes/api.delivery-jobs.ts")
 ] satisfies RouteConfig;
