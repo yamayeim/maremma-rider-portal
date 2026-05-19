@@ -16,26 +16,9 @@ export async function loader({ request }: Route.LoaderArgs) {
         throw new Response("Service Unavailable: Admin access is misconfigured.", { status: 503 });
     }
 
-    // 3. Strict Basic Auth validation
-    const authHeader = request.headers.get("Authorization");
-    let isAuthorized = false;
-
-    if (authHeader && authHeader.startsWith("Basic ")) {
-        try {
-            const expectedAuth = `Basic ${Buffer.from(`admin:${adminPass}`).toString("base64")}`;
-            if (authHeader === expectedAuth) {
-                isAuthorized = true;
-            }
-        } catch (e) {
-            isAuthorized = false;
-        }
-    }
-
-    if (!isAuthorized) {
-        throw new Response("Unauthorized", {
-            status: 401,
-            headers: { "WWW-Authenticate": 'Basic realm="Admin Area"' }
-        });
+    // 3. Admin session check
+    if (!session.get("adminAuthenticated")) {
+        throw redirect("/admin/login");
     }
 
     return null;

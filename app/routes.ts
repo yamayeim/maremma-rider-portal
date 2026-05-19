@@ -12,6 +12,8 @@ export default [
         route("rider/earnings", "routes/rider.earnings.tsx"),
         route("rider/profile", "routes/rider.profile.tsx"),
     ]),
+    route("admin/login", "routes/admin.login.tsx"),
+    route("admin/logout", "routes/admin.logout.tsx"),
     layout("routes/admin-layout.tsx", [
         route("admin", "routes/admin.index.tsx"), // redirects to /admin/riders
         route("admin/riders", "routes/admin.riders.tsx"),
