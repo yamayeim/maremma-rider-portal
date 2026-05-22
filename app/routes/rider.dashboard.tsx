@@ -52,7 +52,7 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function RiderDashboard({ loaderData }: Route.ComponentProps) {
-    const { rider, activeJob, openJobsCount } = loaderData;
+    const { rider, activeJob, openJobsCount, townGroups = [] } = loaderData;
     const submit = useSubmit();
 
     const handleToggle = () => {
