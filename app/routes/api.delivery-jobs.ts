@@ -1,5 +1,6 @@
 import type { Route } from "./+types/api.delivery-jobs";
 import { prisma } from "~/db.server";
+import { Prisma } from "@prisma/client";
 
 export async function action({ request }: Route.ActionArgs) {
     if (request.method !== "POST") {
@@ -55,7 +56,7 @@ export async function action({ request }: Route.ActionArgs) {
     }
 
     try {
-        // We use Prisma upsert to be idempotent.
+        // We use check-then-act + P2002 catch fallback to be idempotent.
         // We ensure we don't overwrite assigned riders or reset accepted/completed jobs.
         const existingJob = await prisma.deliveryJob.findUnique({
             where: {
@@ -116,6 +117,23 @@ export async function action({ request }: Route.ActionArgs) {
             });
         }
     } catch (e) {
+        if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+            console.log(`[API Delivery Jobs] Delivery job already exists for ${orderGid} (caught P2002); returning existing job idempotently.`);
+            try {
+                const recoveredJob = await prisma.deliveryJob.findUnique({
+                    where: { shop_restaurantId_orderGid: { shop, restaurantId, orderGid } }
+                });
+                if (recoveredJob) {
+                    return new Response(JSON.stringify({ ok: true, deliveryJobId: recoveredJob.id, status: recoveredJob.status, recovered: true }), {
+                        status: 200,
+                        headers: { "Content-Type": "application/json" }
+                    });
+                }
+            } catch (recoveryError) {
+                console.error("[API Delivery Jobs] Failed to recover job after P2002:", recoveryError);
+            }
+        }
+
         console.error("[API Delivery Jobs] Database error:", e instanceof Error ? e.message : "Unknown error");
         return new Response("Internal Server Error", { status: 500 });
     }
