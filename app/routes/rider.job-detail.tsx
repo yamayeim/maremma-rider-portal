@@ -65,7 +65,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 export default function RiderJobDetail({ loaderData }: Route.ComponentProps) {
     const { job } = loaderData;
 
-    const getMapLink = (address: string) => `https://maps.apple.com/?q=${encodeURIComponent(address)}`;
+    const getGoogleMapsUrl = (address: string) => `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
 
     return (
         <div className="flex flex-col min-h-screen bg-gray-50 pb-24">
@@ -97,8 +97,8 @@ export default function RiderJobDetail({ loaderData }: Route.ComponentProps) {
                                 {job.status === "ACCEPTED" && (
                                     <div className="mt-4 flex gap-2">
                                         {job.pickupAddress && (
-                                            <a href={getMapLink(job.pickupAddress)} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-900 py-2 rounded-xl text-sm font-semibold transition-colors">
-                                                <Map className="w-4 h-4" /> Mappe
+                                            <a href={getGoogleMapsUrl(job.pickupAddress)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-900 py-2 rounded-xl text-xs font-semibold transition-colors text-center px-1">
+                                                <Map className="w-4 h-4 shrink-0" /> Apri in Google Maps
                                             </a>
                                         )}
                                         {job.restaurantPhone && (
@@ -142,8 +142,8 @@ export default function RiderJobDetail({ loaderData }: Route.ComponentProps) {
                                 {job.status === "PICKED_UP" && (
                                     <div className="mt-4 flex gap-2">
                                         {job.deliveryAddress && (
-                                            <a href={getMapLink(job.deliveryAddress)} target="_blank" rel="noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-900 py-2 rounded-xl text-sm font-semibold transition-colors">
-                                                <Map className="w-4 h-4" /> Mappe
+                                            <a href={getGoogleMapsUrl(job.deliveryAddress)} target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-900 py-2 rounded-xl text-xs font-semibold transition-colors text-center px-1">
+                                                <Map className="w-4 h-4 shrink-0" /> Apri in Google Maps
                                             </a>
                                         )}
                                         {job.customerPhone && (
