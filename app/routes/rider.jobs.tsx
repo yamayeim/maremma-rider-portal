@@ -1,4 +1,5 @@
 import { requireActiveRider, validateRiderAvailability, safeUpdateJobStatus } from "~/utils.server";
+import { getJobTown } from "~/utils";
 import type { Route } from "./+types/rider.jobs";
 import { prisma } from "~/db.server";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -13,8 +14,11 @@ export async function loader({ request }: Route.LoaderArgs) {
     const riderError = validateRiderAvailability(rider);
     if (riderError) throw redirect("/rider"); // Bounced to dashboard
 
+    const url = new URL(request.url);
+    const selectedTown = url.searchParams.get("town");
+
     // Only fetch OPEN jobs using new index/enum
-    const openJobs = await prisma.deliveryJob.findMany({
+    const allOpenJobs = await prisma.deliveryJob.findMany({
         where: { status: "OPEN" },
         orderBy: { createdAt: "desc" },
         select: {
@@ -27,7 +31,21 @@ export async function loader({ request }: Route.LoaderArgs) {
         }
     });
 
-    return { openJobs };
+    const townsMap = new Map<string, { name: string, slug: string }>();
+    for (const job of allOpenJobs) {
+        const t = getJobTown(job);
+        if (!townsMap.has(t.slug)) {
+            townsMap.set(t.slug, t);
+        }
+    }
+    const availableTowns = Array.from(townsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+
+    let openJobs = allOpenJobs;
+    if (selectedTown && selectedTown !== "tutte") {
+        openJobs = allOpenJobs.filter(job => getJobTown(job).slug === selectedTown);
+    }
+
+    return { openJobs, availableTowns, selectedTown };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -51,13 +69,24 @@ export async function action({ request }: Route.ActionArgs) {
 }
 
 export default function RiderJobs({ loaderData, actionData }: Route.ComponentProps) {
-    const { openJobs } = loaderData;
+    const { openJobs, availableTowns, selectedTown } = loaderData;
 
     return (
         <div className="flex flex-col min-h-full pb-20 bg-gray-50">
             <div className="bg-white px-5 pt-12 pb-4 shadow-sm relative z-10 sticky top-0">
                 <h1 className="text-2xl font-bold text-gray-900">Consegne disponibili</h1>
                 <p className="text-gray-500 font-medium text-sm mt-1">Scegli la tua prossima corsa</p>
+
+                <div className="flex overflow-x-auto gap-2 mt-4 pb-2 no-scrollbar">
+                    <a href="/rider/jobs?town=tutte" className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-colors ${!selectedTown || selectedTown === 'tutte' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                        Tutte
+                    </a>
+                    {availableTowns.map(town => (
+                        <a key={town.slug} href={`/rider/jobs?town=${town.slug}`} className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-colors ${selectedTown === town.slug ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                            {town.name}
+                        </a>
+                    ))}
+                </div>
             </div>
 
             <div className="px-5 py-6 space-y-4">

@@ -1,5 +1,5 @@
 import { requireActiveRider } from "~/utils.server";
-import { checkEarningsThreshold } from "~/utils";
+import { checkEarningsThreshold, getJobTown } from "~/utils";
 import type { Route } from "./+types/rider.dashboard";
 import { prisma } from "~/db.server";
 import { Card, CardContent } from "~/components/ui/Card";
@@ -17,12 +17,23 @@ export async function loader({ request }: Route.LoaderArgs) {
         }
     });
 
-    // Get available jobs count
-    const openJobsCount = await prisma.deliveryJob.count({
-        where: { status: "OPEN" }
+    // Get available jobs count & group by town
+    const openJobs = await prisma.deliveryJob.findMany({
+        where: { status: "OPEN" },
+        select: { deliveryAddress: true, pickupAddress: true, restaurantName: true }
     });
 
-    return { rider, activeJob, openJobsCount };
+    const groupedJobs = openJobs.reduce((acc, job) => {
+        const { name, slug } = getJobTown(job);
+        if (!acc[slug]) acc[slug] = { name, count: 0, slug };
+        acc[slug].count++;
+        return acc;
+    }, {} as Record<string, { name: string, slug: string, count: number }>);
+
+    const townGroups = Object.values(groupedJobs).sort((a, b) => b.count - a.count);
+    const openJobsCount = openJobs.length;
+
+    return { rider, activeJob, openJobsCount, townGroups };
 }
 
 export async function action({ request }: Route.ActionArgs) {
@@ -151,12 +162,16 @@ export default function RiderDashboard({ loaderData }: Route.ComponentProps) {
                 {!activeJob && (
                     <div className="space-y-3">
                         <h3 className="font-bold text-gray-900">Nuove richieste</h3>
-                        {openJobsCount > 0 ? (
-                            <a href="/rider/jobs" className="block relative overflow-hidden bg-gray-900 text-white rounded-2xl p-5 shadow-sm active:scale-[0.98] transition-all">
-                                <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-brand-500 rounded-full opacity-20 blur-xl"></div>
-                                <h4 className="font-bold text-xl">{openJobsCount} consegne disponibili</h4>
-                                <p className="text-gray-300 mt-1 text-sm">Tocca per vedere la mappa o scegliere una consegna.</p>
-                            </a>
+                        {townGroups.length > 0 ? (
+                            <div className="space-y-3">
+                                {townGroups.map(group => (
+                                    <a key={group.slug} href={`/rider/jobs?town=${group.slug}`} className="block relative overflow-hidden bg-gray-900 text-white rounded-2xl p-5 shadow-sm active:scale-[0.98] transition-all">
+                                        <div className="absolute top-0 right-0 -mr-4 -mt-4 w-24 h-24 bg-brand-500 rounded-full opacity-20 blur-xl"></div>
+                                        <h4 className="font-bold text-xl">{group.name}</h4>
+                                        <p className="text-gray-300 mt-1 text-sm">{group.count} {group.count === 1 ? 'consegna disponibile' : 'consegne disponibili'}</p>
+                                    </a>
+                                ))}
+                            </div>
                         ) : (
                             <Card className="border-dashed shadow-none bg-transparent">
                                 <CardContent className="p-6 text-center">
