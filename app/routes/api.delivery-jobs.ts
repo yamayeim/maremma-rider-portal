@@ -36,6 +36,8 @@ export async function action({ request }: Route.ActionArgs) {
         fee,
         fulfillmentMethod,
         deliveryAddress,
+        pickupAddress,
+        restaurantPhone,
         customerName,
         customerPhone,
         requestedAt
@@ -76,6 +78,8 @@ export async function action({ request }: Route.ActionArgs) {
                     data: {
                         restaurantName: restaurantName ?? existingJob.restaurantName,
                         deliveryAddress: deliveryAddress ?? existingJob.deliveryAddress,
+                        pickupAddress: (pickupAddress && pickupAddress.trim() !== "") ? pickupAddress : existingJob.pickupAddress,
+                        restaurantPhone: (restaurantPhone && restaurantPhone.trim() !== "") ? restaurantPhone : existingJob.restaurantPhone,
                         customerName: customerName ?? existingJob.customerName,
                         customerPhone: customerPhone ?? existingJob.customerPhone
                     }
@@ -103,7 +107,9 @@ export async function action({ request }: Route.ActionArgs) {
                     fee: typeof fee === "number" ? fee : 2.50,
                     fulfillmentMethod,
                     deliveryAddress,
+                    pickupAddress,
                     restaurantName,
+                    restaurantPhone,
                     customerName,
                     customerPhone,
                     status: "OPEN",
