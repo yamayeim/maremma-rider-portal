@@ -20,6 +20,8 @@ export async function loader({ request }: Route.LoaderArgs) {
     // Get available jobs count & group by town
     const openJobs = await prisma.deliveryJob.findMany({
         where: { status: "OPEN" },
+        take: 200,
+        orderBy: { requestedAt: "desc" },
         select: { deliveryAddress: true, pickupAddress: true, restaurantName: true }
     });
 
