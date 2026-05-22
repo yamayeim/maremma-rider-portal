@@ -78,7 +78,7 @@ export default function RiderJobs({ loaderData, actionData }: Route.ComponentPro
                 <p className="text-gray-500 font-medium text-sm mt-1">Scegli la tua prossima corsa</p>
 
                 <div className="flex overflow-x-auto gap-2 mt-4 pb-2 no-scrollbar">
-                    <a href="/rider/jobs?town=tutte" className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-colors ${!selectedTown || selectedTown === 'tutte' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
+                    <a href="/rider/jobs" className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold transition-colors ${!selectedTown || selectedTown === 'tutte' ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}>
                         Tutte
                     </a>
                     {availableTowns.map(town => (
